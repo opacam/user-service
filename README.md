@@ -1,0 +1,115 @@
+# user-service
+
+[![Python versions](https://img.shields.io/badge/Python-3.6+-brightgreen.svg?style=flat)](https://www.python.org/downloads/)
+[![GitHub release](https://img.shields.io/github/release/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/releases/)
+[![GitHub tag](https://img.shields.io/github/tag/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/tags/)
+[![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/master/LICENSE.md)
+
+
+A RESTful API to deal with user authentication and management.
+
+## Getting Started
+
+These instructions will get you a copy of the project up and running on your
+local machine for development and testing purposes. See deployment for notes on
+how to deploy the project on a live system.
+
+### Prerequisites
+
+You also need python >= 3.6 up and running. If you OS does not have the
+appropriate python version, you could install [pyenv](https://github.com/pyenv/pyenv) 
+and create a virtual environment with the proper python version. Also you will
+need an up to date pip installation (version `20.1.1` or greater is our
+recommendation). So once you have `pyenv` installed
+(see [pyenv install instructions](https://github.com/pyenv/pyenv#installation)), 
+make an virtual environment for the project (we will use python version 3.8):
+
+```
+pyenv virtualenv 3.8.1 user-service
+```
+
+Enter inside the python environment we recently created (`user-service`):
+```
+pyenv activate user-service
+```
+
+Upgrade `pip/setuptools` packages:
+```
+pip install --upgrade pip
+pip install --upgrade setuptools
+```
+
+Install `poetry` package:
+```
+pip install poetry
+```
+
+### Installing
+
+Once you have the prerequisites installed, you can proceed installing the
+project. The project uses an `pyproject.toml` file to manage the installation
+(PEP517) and also we will make use of the python package
+[poetry](https://github.com/python-poetry/poetry) as our `build-system`
+(PEP518):
+
+Run the install of the dependencies via `poetry` command:
+
+```
+poetry install
+```
+
+
+## Running the tests
+
+To run our project tests you can use `pytest` with coverage:
+
+```
+PYTHONPATH=. pytest tests/ --cov app/
+```
+
+
+## Running the server
+
+To run our project you should enter to the `user-service` directory:
+
+```
+PYTHONPATH=. uvicorn app.main:app --reload
+```
+
+Then you can access the app from http://127.0.0.1:8000. To access the
+documentation, head over to http://127.0.0.1:8000/docs.
+
+
+## Built With
+
+* [Python 3](https://docs.python.org/3/) - The programming language
+* [FastAPI](https://fastapi.tiangolo.com/) - FastAPI is a modern, fast (high-performance), web framework for building APIs with Python 3.6+ based on standard Python type hints.
+* [Poetry](https://python-poetry.org/docs/) - Dependency Management
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of
+conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [CalVer](https://calver.org/) for versioning. For the versions available,
+see the [tags on this repository](https://github.com/opacam/user-service/tags).
+
+
+## Authors
+
+* **Pol Canelles** - *Initial API work* - [opacam](https://github.com/opacam)
+
+See also the list of [contributors](https://github.com/opacam/user-service/contributors)
+who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* [FastAPI Docs](https://fastapi.tiangolo.com/)
+* [Developing and Testing an Asynchronous API with FastAPI and Pytest](https://testdriven.io/blog/fastapi-crud/)
+* [Microservice in Python using FastAPI](https://dev.to/paurakhsharma/microservice-in-python-using-fastapi-24cc)

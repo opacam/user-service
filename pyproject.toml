@@ -1,0 +1,38 @@
+[tool.poetry]
+name = "user-service"
+version = "2020.05.29"
+description = "A RESTful API to manage users accounts."
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/opacam/user-service/"
+repository = "https://github.com/opacam/user-service/"
+keywords = ["FastApi", "login", "microservice"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Topic :: Internet :: WWW/HTTP :: WSGI",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Server",
+    "Topic :: Utilities"
+]
+authors = ["opacam <canellestudi@gmail.com>"]
+maintainers = ["opacam <canellestudi@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+fastapi = {extras = ["all"], version = "^0.55.1"}
+sqlalchemy = "^1.3.17"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+pytest-cov = "^2.9.0"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
