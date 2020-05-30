@@ -64,7 +64,7 @@ poetry install
 To run our project tests you can use `pytest` with coverage:
 
 ```
-PYTHONPATH=. pytest tests/ --cov app/
+PYTHONPATH=. pytest --cov app/
 ```
 
 
