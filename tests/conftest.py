@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from app.api import security
 from app.api import utils
 from app.api.models import Base
 from app.main import app, get_db
@@ -32,6 +33,11 @@ def datetime_now(monkeypatch):
         def now(cls):
             return FAKE_TIME
 
+        @classmethod
+        def utcnow(cls):
+            return FAKE_TIME
+
+    monkeypatch.setattr(security, "datetime", FakeDateTime)
     monkeypatch.setattr(utils, 'datetime', FakeDateTime)
 
 
