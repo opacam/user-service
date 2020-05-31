@@ -69,6 +69,16 @@ class UserCreate(UserBase):
     )
 
 
+class UserRemoved(UserBase):
+    """A class to be used when we need to remove an User."""
+    id: int = Field(
+        None,
+        title="`id` of the user.",
+        description="The `id` of the removed user.",
+        gt=0,
+    )
+
+
 class User(UserBase):
     """A class which defines an User."""
     id: int = Field(

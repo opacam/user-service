@@ -1,3 +1,5 @@
+from types import MappingProxyType
+
 import jwt
 import pytest
 from fastapi import HTTPException
@@ -12,7 +14,19 @@ headers_authenticated_user = {
     "Authorization": f"Bearer {expected_token.decode('utf-8')}",
 }
 
+# welcome to the world of mutable/immutable dicts...since there is a bug in
+# `cpython` (MappingProxy objects should JSON serialize just like a dictionary)
+# affecting python 3.8 (at least), we are enforced to duplicate the
+# `post_data_user`...or some of our tests will fail when trying to serialize
+# data. So, imho, is easier to create a duplicate of the object than messing
+# with previously wrote tests. This affects one of our test
+# helpers: `get_superuser_token_headers`
+#
+# See also: https://bugs.python.org/issue34858
 post_data_user = {"username": "johndoe", "password": test_password}
+post_data_user_in_mpt = MappingProxyType(post_data_user)
+to_delete_user = {"username": "johndoe2", "password": test_password}
+
 expected_user = {
     "username": "johndoe",
     "id": 1,
@@ -22,6 +36,20 @@ expected_user = {
             "title": "Account created",
             "id": 1,
             "owner_id": 1,
+            "timestamp": "2020-05-30 17:35:55",
+        }
+    ],
+}
+
+expected_delete_user = {
+    "username": "johndoe2",
+    "id": 2,
+    "is_active": False,
+    "actions": [
+        {
+            "title": "Account created",
+            "id": 2,
+            "owner_id": 2,
             "timestamp": "2020-05-30 17:35:55",
         }
     ],
@@ -75,8 +103,8 @@ def mock_jwt_decode_raise_exception(monkeypatch):
     monkeypatch.setattr(main, "jwt", FakeJwtRaiseException)
 
 
-def get_superuser_token_headers(client):
-    r = client.post("/authenticate", data=post_data_user)
+def get_superuser_token_headers(client, user_data=post_data_user_in_mpt):
+    r = client.post("/authenticate", data=user_data)
     tokens = r.json()
     a_token = tokens["access_token"]
     headers = {"Authorization": f"Bearer {a_token}"}
@@ -93,10 +121,14 @@ def test_read_main(client):
     assert response.json() == {"msg": "Welcome to user-service"}
 
 
-def test_create_user(client, datetime_now):
-    response = client.post("/users/", json=post_data_user)
+@pytest.mark.parametrize(
+    "user_data, expected_data",
+    [(post_data_user, expected_user), (to_delete_user, expected_delete_user)]
+)
+def test_create_user(client, datetime_now, user_data, expected_data):
+    response = client.post("/users/", json=user_data)
     assert response.status_code == 200
-    assert response.json() == expected_user
+    assert response.json() == expected_data
 
 
 def test_create_user_when_already_created(client):
@@ -145,7 +177,7 @@ def test_read_user(client):
         },
         {
             "title": "Logged into account",
-            "id": 2,
+            "id": 3,
             "owner_id": 1,
             "timestamp": "2020-05-30 17:35:55",
         },
@@ -311,3 +343,26 @@ def test_read_last_actions(client, user_id, expected_status_code):
             ),
         }
         assert response.json() == expected_msg
+
+
+@pytest.mark.parametrize("user_id,expected_status_code", [(1, 401), (2, 200)])
+def test_delete_user(client, user_id, expected_status_code):
+    user_authentication_data = {1: post_data_user, 2: to_delete_user}
+
+    session_headers_with_token = get_superuser_token_headers(
+        client, user_data=MappingProxyType(user_authentication_data[user_id])
+    )
+    response = client.delete(
+        f"/users/2", headers=session_headers_with_token,
+    )
+    assert response.status_code == expected_status_code
+    if user_id == 1:
+        assert response.json() == {
+            "detail": [
+                main.UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="profile", user_id=1
+                )
+            ]
+        }
+    else:
+        assert response.json() == {"username": "johndoe2", "id": 2}

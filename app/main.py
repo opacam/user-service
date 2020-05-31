@@ -32,8 +32,8 @@ app = FastAPI(
 )
 
 UNAUTHORIZED_USER_QUERY_MSG = (
-    "You are not allowed to view the {section} of another user, please, use "
-    "your own id: `{user_id}`."
+    "You are not allowed to view/modify the {section} "
+    "of another user, please, use your own id: `{user_id}`."
 )
 
 WRONG_QUERY_ARGUMENTS_MSG = (
@@ -139,6 +139,35 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
         )
     log.debug(f"Creating user: {user}")
     return crud.create_user(db=db, user=user)
+
+
+@app.delete(
+    "/users/{user_id}",
+    response_model=schemas.UserRemoved,
+    tags=["Users (private)"],
+    description=(
+            "This `delete` call, will also remove any information "
+            "related with the user."
+    ),
+)
+async def delete_user(
+        user_id: int,
+        db: Session = Depends(get_db),
+        current_user: schemas.User = Depends(get_current_user),
+):
+    """A `DELETE` call to remove an user from database."""
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=(
+                UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="profile", user_id=current_user.id,
+                ),
+            ),
+        )
+    removed_user = crud.remove_user(db, user_id)
+    log.info(f"Removed user: {removed_user}")
+    return removed_user
 
 
 @app.get(

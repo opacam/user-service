@@ -19,7 +19,9 @@ class User(Base):
     hashed_password = Column(String)
     is_active = Column(Boolean, default=False)
 
-    actions = relationship("Action", back_populates="owner")
+    actions = relationship(
+        "Action", cascade="all,delete", back_populates="owner",
+    )
 
 
 class Action(Base):

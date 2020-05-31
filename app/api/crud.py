@@ -38,6 +38,20 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
+def remove_user(db: Session, user_id: int) -> schemas.UserRemoved:
+    """
+     Given an user id, removes an user and all his information from database.
+    """
+    db_user = get_user(db, user_id)
+    db.delete(db_user)
+    db.commit()
+    removed_user = schemas.UserRemoved(**{
+        "username": db_user.username, "id": db_user.id,
+    })
+    log.info(f"Removed user: {removed_user}")
+    return removed_user
+
+
 def _get_user_all_actions(db: Session, user_id: int):
     """A private function that return all actions performed by an user."""
     return db.query(models.Action).filter(models.Action.owner_id == user_id)
