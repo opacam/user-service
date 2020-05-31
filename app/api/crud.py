@@ -67,6 +67,22 @@ def get_user_actions(
     return query.order_by(models.Action.timestamp.asc()).limit(limit).all()
 
 
+def get_latest_user_actions(db: Session, user_id: int) -> list:
+    """
+    A function that queries all the user actions but keeps only the latest of
+    each kind.
+    """
+    added_actions = set()
+    last_actions = []
+    query = get_user_actions(db, user_id, sort="desc", limit=0)
+    for row in query:
+        if row.title in added_actions:
+            continue
+        added_actions.add(row.title)
+        last_actions.append(row)
+    return last_actions
+
+
 def create_user_action(
     db: Session, action: schemas.ActionCreate, user_id: int
 ):

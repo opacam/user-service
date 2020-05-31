@@ -225,3 +225,36 @@ async def read_actions(
         user_id,
     )
     return actions
+
+
+@app.get(
+    "/users/{user_id}/last_actions",
+    response_model=List[schemas.Action],
+    tags=["Users (private)"],
+)
+async def read_last_actions(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    """A `GET` call to query latest action of each kind."""
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=(
+                UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="last actions", user_id=current_user.id,
+                )
+            ),
+        )
+    last_actions = crud.get_latest_user_actions(
+        db, user_id=user_id,
+    )
+
+    # register last actions query
+    crud.create_user_action(
+        db,
+        schemas.ActionCreate(**{"title": f"Queried last actions"}),
+        user_id,
+    )
+    return last_actions

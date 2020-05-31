@@ -292,3 +292,22 @@ def test_read_actions_wrong_sort_param(client):
     }
     assert response.status_code == 400
     assert response.json() == expected_msg
+
+
+@pytest.mark.parametrize("user_id,expected_status_code", [(1, 200), (2, 401)])
+def test_read_last_actions(client, user_id, expected_status_code):
+    session_headers_with_token = get_superuser_token_headers(client)
+    response = client.get(
+        f"/users/{user_id}/last_actions", headers=session_headers_with_token,
+    )
+    assert response.status_code == expected_status_code
+    if user_id == 1:
+        # user tries to get his data
+        assert isinstance(response.json(), list) is True
+    else:
+        expected_msg = {
+            "detail": main.UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="last actions", user_id=1,
+            ),
+        }
+        assert response.json() == expected_msg
