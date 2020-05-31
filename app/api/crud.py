@@ -1,4 +1,5 @@
 import logging
+
 from sqlalchemy.orm import Session
 
 from app.api import models, schemas, utils, security
@@ -35,6 +36,35 @@ def create_user(db: Session, user: schemas.UserCreate):
         db, schemas.ActionCreate(**{"title": "Account created"}), db_user.id
     )
     return db_user
+
+
+def _get_user_all_actions(db: Session, user_id: int):
+    """A private function that return all actions performed by an user."""
+    return db.query(models.Action).filter(models.Action.owner_id == user_id)
+
+
+def get_user_actions(
+    db: Session, user_id: int, sort: str = "desc", limit: int = 100
+) -> list:
+    """
+    A function that returns user actions sorted depending on the supplied kwarg
+    `sort`. You also can limit the results shown via the kwarg `limit`. I you
+    set `limit=0`, it will show all the results.
+    """
+    query = _get_user_all_actions(db, user_id)
+    log.debug(f"Selected order for user actions is: {sort}")
+    not_limited = limit == 0
+    sort_desc = sort == "desc"
+    if not_limited:
+        if sort_desc:
+            return query.order_by(models.Action.timestamp.desc()).all()
+        return query.order_by(models.Action.timestamp.asc()).all()
+
+    if sort_desc:
+        return (
+            query.order_by(models.Action.timestamp.desc()).limit(limit).all()
+        )
+    return query.order_by(models.Action.timestamp.asc()).limit(limit).all()
 
 
 def create_user_action(

@@ -1,8 +1,9 @@
 import logging
 from datetime import timedelta
+from typing import List
 
 import jwt
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt import PyJWTError
 from sqlalchemy.orm import Session
@@ -28,6 +29,15 @@ app = FastAPI(
     description="A simple user api with authentication",
     openapi_url=api_settings.openapi_route,
     debug=api_settings.debug,
+)
+
+UNAUTHORIZED_USER_QUERY_MSG = (
+    "You are not allowed to view the {section} of another user, please, use "
+    "your own id: `{user_id}`."
+)
+
+WRONG_QUERY_ARGUMENTS_MSG = (
+    "The Query parameter supplied for `{query_arg}` is invalid."
 )
 
 
@@ -146,8 +156,72 @@ async def read_user(
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=(
-                "You are not allowed to view the profile of another user, "
-                f"please, use your own id: `{current_user.id}`."
+                UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="profile", user_id=current_user.id,
+                ),
             ),
         )
     return crud.get_user(db, user_id=user_id)
+
+
+@app.get(
+    # This path could be build without enforcing the `user_id` but, imho, I
+    # think it's better to enforce the user_id, since the path looks like more
+    # consistent, since we are querying an user specific information, plus
+    # gives us more freedom, like having a super admin account that could
+    # bypass the restrictions set.
+    "/users/{user_id}/actions",
+    response_model=List[schemas.Action],
+    tags=["Users (private)"],
+)
+async def read_actions(
+    user_id: int,
+    sort: str = Query(
+        "desc",
+        title="Sort results",
+        description="It should be one of: `asc` or `desc`",
+    ),
+    limit: int = Query(
+        100,
+        title="Limit results",
+        description=(
+                "The results will be limited to the supplied number. If the "
+                "supplied number is `0`, all the result will be shown."
+        ),
+    ),
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    """A `GET` call to retrieve the user actions information."""
+    if user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=(
+                UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="actions", user_id=current_user.id,
+                )
+            ),
+        )
+    if sort not in {"asc", "desc"}:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                WRONG_QUERY_ARGUMENTS_MSG.format(query_arg="order_direction")
+                + "It should be one of: `asc` or `desc`."
+            ),
+        )
+    actions = crud.get_user_actions(
+        db, user_id=user_id, sort=sort, limit=limit,
+    )
+
+    # register actions query
+    order = {"asc": "ascending", "desc": "descending"}
+    lim = f"{'unlimited' if limit == 0 else ('limited to ' + str(limit))}"
+    crud.create_user_action(
+        db,
+        schemas.ActionCreate(
+            **{"title": f"Queried actions in {order[sort]} sorting ({lim})"},
+        ),
+        user_id,
+    )
+    return actions

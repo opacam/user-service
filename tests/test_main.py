@@ -160,10 +160,11 @@ def test_read_user(client):
 
     # Test that an user cannot get info from another user
     expected_msg = {
-        "detail": (
-            "You are not allowed to view the profile of another user, "
-            f"please, use your own id: `{expected_user['id']}`."
-        )
+        "detail": [
+            main.UNAUTHORIZED_USER_QUERY_MSG.format(
+                section="profile", user_id=1,
+            ),
+        ],
     }
     response = client.get("/users/2", headers=session_headers_with_token)
     assert response.status_code == 401
@@ -228,3 +229,66 @@ async def test_get_current_user_db_error_no_user(
             mock_get_db_yield,
         )
     assert str(excinfo) == expected_credentials_exception
+
+
+@pytest.mark.parametrize("user_id,expected_status_code", [(1, 200), (2, 401)])
+def test_read_actions_basic(client, user_id, expected_status_code):
+    # test query with default parameters
+    session_headers_with_token = get_superuser_token_headers(client)
+    response = client.get(
+        f"/users/{user_id}/actions", headers=session_headers_with_token,
+    )
+    response_json = response.json()
+    assert response.status_code == expected_status_code
+    if user_id == 1:
+        # user tries to get his data
+        assert isinstance(response_json, list) is True
+        # we expect at least two actions: create account and
+        # one login, but we could have more actions registered
+        assert len(response_json) > 2
+        for action in response_json:
+            expected_keys = {"title", "id", "owner_id", "timestamp"}
+            for key in expected_keys:
+                assert (key in action) is True
+                assert action[key] not in {"", None, False, 0}
+    else:
+        expected_msg = {
+            "detail": main.UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="actions", user_id=1,
+            ),
+        }
+        assert response.json() == expected_msg
+
+
+@pytest.mark.parametrize(
+    "limit,sort", ((2, "asc"), (2, "desc"), (0, "asc"), (0, "desc")),
+)
+def test_read_actions_with_params(client, limit, sort):
+    session_headers_with_token = get_superuser_token_headers(client)
+    response = client.get(
+        f"/users/1/actions?limit={limit}&sort={sort}",
+        headers=session_headers_with_token,
+    )
+    assert response.status_code == 200
+    if limit == 0:
+        assert len(response.json()) > 2
+    else:
+        assert len(response.json()) == 2
+    if sort == "asc":
+        assert response.json()[0]["title"] == "Account created"
+    else:
+        assert response.json()[0]["title"] == "Logged into account"
+
+
+def test_read_actions_wrong_sort_param(client):
+    session_headers_with_token = get_superuser_token_headers(client)
+    response = client.get(
+        "/users/1/actions?sort=wrong_word", headers=session_headers_with_token,
+    )
+    expected_msg = {
+        "detail": main.WRONG_QUERY_ARGUMENTS_MSG.format(
+            query_arg="order_direction"
+        ) + "It should be one of: `asc` or `desc`."
+    }
+    assert response.status_code == 400
+    assert response.json() == expected_msg
