@@ -19,6 +19,7 @@ from app.api.security import (
     create_access_token,
     verify_password,
 )
+from app.api.utils import check_user_id
 
 log = logging.getLogger("api")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/authenticate")
@@ -29,11 +30,6 @@ app = FastAPI(
     description="A simple user api with authentication",
     openapi_url=api_settings.openapi_route,
     debug=api_settings.debug,
-)
-
-UNAUTHORIZED_USER_QUERY_MSG = (
-    "You are not allowed to view/modify the {section} "
-    "of another user, please, use your own id: `{user_id}`."
 )
 
 WRONG_QUERY_ARGUMENTS_MSG = (
@@ -156,15 +152,8 @@ async def delete_user(
         current_user: schemas.User = Depends(get_current_user),
 ):
     """A `DELETE` call to remove an user from database."""
-    if user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=(
-                UNAUTHORIZED_USER_QUERY_MSG.format(
-                    section="profile", user_id=current_user.id,
-                ),
-            ),
-        )
+    assert check_user_id(current_user.id, user_id, "profile") is True
+
     removed_user = crud.remove_user(db, user_id)
     log.info(f"Removed user: {removed_user}")
     return removed_user
@@ -181,15 +170,8 @@ async def read_user(
     current_user: schemas.User = Depends(get_current_user),
 ):
     """A `GET` call to retrieve user information."""
-    if user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=(
-                UNAUTHORIZED_USER_QUERY_MSG.format(
-                    section="profile", user_id=current_user.id,
-                ),
-            ),
-        )
+    assert check_user_id(current_user.id, user_id, "profile") is True
+
     return crud.get_user(db, user_id=user_id)
 
 
@@ -222,15 +204,8 @@ async def read_actions(
     current_user: schemas.User = Depends(get_current_user),
 ):
     """A `GET` call to retrieve the user actions information."""
-    if user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=(
-                UNAUTHORIZED_USER_QUERY_MSG.format(
-                    section="actions", user_id=current_user.id,
-                )
-            ),
-        )
+    assert check_user_id(current_user.id, user_id, "actions") is True
+
     if sort not in {"asc", "desc"}:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -267,15 +242,8 @@ async def read_last_actions(
     current_user: schemas.User = Depends(get_current_user),
 ):
     """A `GET` call to query latest action of each kind."""
-    if user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=(
-                UNAUTHORIZED_USER_QUERY_MSG.format(
-                    section="last actions", user_id=current_user.id,
-                )
-            ),
-        )
+    assert check_user_id(current_user.id, user_id, "last actions") is True
+
     last_actions = crud.get_latest_user_actions(
         db, user_id=user_id,
     )

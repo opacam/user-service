@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy import orm
 
 from app import main
+from app.api import utils
 from tests.api.test_security import expected_token, test_password
 
 headers_authenticated_user = {
@@ -193,7 +194,7 @@ def test_read_user(client):
     # Test that an user cannot get info from another user
     expected_msg = {
         "detail": [
-            main.UNAUTHORIZED_USER_QUERY_MSG.format(
+            utils.UNAUTHORIZED_USER_QUERY_MSG.format(
                 section="profile", user_id=1,
             ),
         ],
@@ -285,9 +286,11 @@ def test_read_actions_basic(client, user_id, expected_status_code):
                 assert action[key] not in {"", None, False, 0}
     else:
         expected_msg = {
-            "detail": main.UNAUTHORIZED_USER_QUERY_MSG.format(
+            "detail": [
+                utils.UNAUTHORIZED_USER_QUERY_MSG.format(
                     section="actions", user_id=1,
-            ),
+                ),
+            ],
         }
         assert response.json() == expected_msg
 
@@ -338,9 +341,11 @@ def test_read_last_actions(client, user_id, expected_status_code):
         assert isinstance(response.json(), list) is True
     else:
         expected_msg = {
-            "detail": main.UNAUTHORIZED_USER_QUERY_MSG.format(
+            "detail": [
+                utils.UNAUTHORIZED_USER_QUERY_MSG.format(
                     section="last actions", user_id=1,
-            ),
+                ),
+            ],
         }
         assert response.json() == expected_msg
 
@@ -359,10 +364,10 @@ def test_delete_user(client, user_id, expected_status_code):
     if user_id == 1:
         assert response.json() == {
             "detail": [
-                main.UNAUTHORIZED_USER_QUERY_MSG.format(
-                    section="profile", user_id=1
-                )
-            ]
+                utils.UNAUTHORIZED_USER_QUERY_MSG.format(
+                    section="profile", user_id=1,
+                ),
+            ],
         }
     else:
         assert response.json() == {"username": "johndoe2", "id": 2}
