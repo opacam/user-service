@@ -371,3 +371,29 @@ def test_delete_user(client, user_id, expected_status_code):
         }
     else:
         assert response.json() == {"username": "johndoe2", "id": 2}
+
+
+@pytest.mark.parametrize(
+    "new_password, credentials",
+    (
+            ("a_new_password", post_data_user_in_mpt),
+            (
+                    post_data_user["password"],
+                    {
+                        "username": post_data_user["username"],
+                        "password": "a_new_password",
+                    },
+            ),
+    )
+)
+def test_change_user_password(client, new_password, credentials):
+    # We change the password two times in order to restore original
+    # password and avoid unexpected behaviours in further tests
+    session_headers_with_token = get_superuser_token_headers(
+        client, user_data=MappingProxyType(credentials),
+    )
+    response = client.put(
+        f"/users/1/password?new_password={new_password}",
+        headers=session_headers_with_token,
+    )
+    assert response.status_code == 200

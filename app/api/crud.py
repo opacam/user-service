@@ -38,6 +38,14 @@ def create_user(db: Session, user: schemas.UserCreate):
     return db_user
 
 
+def change_user_password(db: Session, user_id: int, new_password):
+    """Change user password."""
+    db_user = get_user(db, user_id)
+    db_user.hashed_password = security.get_password_hash(new_password)
+    db.commit()
+    return db_user
+
+
 def remove_user(db: Session, user_id: int) -> schemas.UserRemoved:
     """
      Given an user id, removes an user and all his information from database.

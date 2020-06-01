@@ -175,6 +175,30 @@ async def read_user(
     return crud.get_user(db, user_id=user_id)
 
 
+@app.put(
+    "/users/{user_id}/password",
+    tags=["Users (private)"],
+)
+async def change_user_password(
+    user_id: int,
+    new_password: str,
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    """A `PUT` call to update user password."""
+    assert check_user_id(current_user.id, user_id, "password") is True
+
+    crud.change_user_password(db, user_id, new_password)
+
+    # register action: changed user password
+    crud.create_user_action(
+        db,
+        schemas.ActionCreate(**{"title": "Changed user password"}),
+        user_id,
+    )
+    return {"details": "Successfully changed user password"}
+
+
 @app.get(
     # This path could be build without enforcing the `user_id` but, imho, I
     # think it's better to enforce the user_id, since the path looks like more
