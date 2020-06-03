@@ -1,6 +1,6 @@
 import logging
 from datetime import timedelta
-from typing import Literal, List
+from typing import List
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -8,6 +8,10 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt import PyJWTError
 from sqlalchemy.orm import Session
 from starlette import status
+# to support Python versions lower than 3.8, we import
+# `Literal` from typing_extensions instead from the builtin module
+#   See also: https://docs.python.org/3/library/typing.html#typing.Literal
+from typing_extensions import Literal
 
 from app.database import SessionLocal
 from app.api import crud, schemas

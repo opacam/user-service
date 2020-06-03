@@ -1,8 +1,11 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Literal
 
 from sqlalchemy.orm import Session
+# to support Python versions lower than 3.8, we import
+# `Literal` from typing_extensions instead from the builtin module
+#   See also: https://docs.python.org/3/library/typing.html#typing.Literal
+from typing_extensions import Literal
 
 from app.api import models, schemas, utils, security
 
