@@ -5,7 +5,7 @@
 [![Python versions](https://img.shields.io/badge/Python-3.6+-brightgreen.svg?style=flat)](https://www.python.org/downloads/)
 [![GitHub release](https://img.shields.io/github/release/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/releases/)
 [![GitHub tag](https://img.shields.io/github/tag/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/tags/)
-[![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/master/LICENSE.md)
+[![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/develop/LICENSE.md)
 
 
 A RESTful API, intended to be used as microservice, which will deal with
@@ -25,12 +25,12 @@ where we collect all users data (anonymously).
   frontend app, but we could store some user preferences regarding the
   user API queries...like default period for histogram or the preferred
   sorting order for the user API calls)
-- add support to `PostreSQL` database (now we default to sqlite3)
+- add support to `PostgreSQL` database (now we default to sqlite3)
 - containerise the app via Docker
 - deploy a demo of the project at heroku or something similar
 
 
-*This project has been made with Python 3, fastapi and love*
+*This project has been made with Python 3, FastAPI and love*
 
 ## Getting Started
 
