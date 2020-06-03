@@ -1,5 +1,6 @@
 # user-service
 
+[![CI](https://github.com/opacam/user-service/workflows/CI/badge.svg?branch=develop)](https://github.com/opacam/user-service/actions/)
 [![Python versions](https://img.shields.io/badge/Python-3.6+-brightgreen.svg?style=flat)](https://www.python.org/downloads/)
 [![GitHub release](https://img.shields.io/github/release/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/releases/)
 [![GitHub tag](https://img.shields.io/github/tag/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/tags/)
