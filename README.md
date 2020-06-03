@@ -6,7 +6,29 @@
 [![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/master/LICENSE.md)
 
 
-A RESTful API to deal with user authentication and management.
+A RESTful API, intended to be used as microservice, which will deal with
+users account management.
+
+It implements several endpoints, most of them only available for
+authenticated users. It basically allows you to create an account via an
+username and a password and from that point on, it will register all the
+user queries to the API. All this `user actions` can be consulted by the
+owner of the account and also we provide endpoints to retrieve histograms
+where we collect all users data (anonymously).
+
+**Road map:**
+
+- extend/enhance the documentation
+- extend the API to support store user preferences (tied to the target
+  frontend app, but we could store some user preferences regarding the
+  user API queries...like default period for histogram or the preferred
+  sorting order for the user API calls)
+- add support to `PostreSQL` database (now we default to sqlite3)
+- containerise the app via Docker
+- deploy a demo of the project at heroku or something similar
+
+
+*This project has been made with Python 3, fastapi and love*
 
 ## Getting Started
 
