@@ -1,4 +1,6 @@
 import logging
+from datetime import datetime, timedelta
+from typing import Literal
 
 from sqlalchemy.orm import Session
 
@@ -103,6 +105,79 @@ def get_latest_user_actions(db: Session, user_id: int) -> list:
         added_actions.add(row.title)
         last_actions.append(row)
     return last_actions
+
+
+def get_all_actions(db: Session, skip: int = 0):
+    """A function that return all actions from all users."""
+    return db.query(models.Action).offset(skip).all()
+
+
+def get_all_actions_in_a_period(
+        db: Session, period_time: Literal["hour", "day", "month"] = "day",
+) -> list:
+    """Return all actions in a period of time since the current datetime."""
+    current_time = datetime.utcnow()
+    if period_time == "hour":
+        time_ago = current_time - timedelta(hours=1)
+    elif period_time == "day":
+        time_ago = current_time - timedelta(days=1)
+    else:
+        time_ago = current_time - timedelta(days=31)
+
+    query = db.query(models.Action).filter(
+        models.Action.timestamp > time_ago
+    )
+
+    return query.all()
+
+
+def get_users_periods_histogram(
+        db: Session, period_time: Literal["hour", "day", "month", ""] = "",
+) -> dict:
+    """
+    Return all types of registered actions with the datetime for each
+    registered action. The result will be in a dict format, where the keys are
+    the actions and the values are lists containing datetime objects.
+    """
+    if period_time == "":
+        all_actions = get_all_actions(db)
+    else:
+        all_actions = get_all_actions_in_a_period(
+            db, period_time=period_time,
+        )
+    histogram = {}
+    for row in all_actions:
+        title = row.title
+        dt = row.timestamp
+        if row.title in histogram:
+            histogram[title]["timestamps"].append(dt)
+            histogram[title]["size"] += 1
+            continue
+        histogram[title] = {
+            "timestamps": [dt],
+            "size": 1,
+        }
+
+    # now set the min and max values, which will be
+    # the first and the last item of the timestamps list since the timestamps
+    # are registered in a linear sequence of time, so no need to check the
+    # values.
+    for key, data in histogram.items():
+        histogram[key]["min"] = data["timestamps"][0]
+        histogram[key]["max"] = data["timestamps"][-1]
+    return histogram
+
+
+def get_users_types_histogram(db: Session) -> dict:
+    """
+    Return all types of registered actions as well as the number of times that
+    the action was used in a dict format.
+    """
+    actions_data = get_users_periods_histogram(db, period_time="")
+    counted_actions = {}
+    for k, v in actions_data.items():
+        counted_actions[k] = v["size"]
+    return counted_actions
 
 
 def create_user_action(

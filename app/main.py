@@ -1,6 +1,6 @@
 import logging
 from datetime import timedelta
-from typing import List
+from typing import Literal, List
 
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, Query
@@ -123,6 +123,71 @@ async def login_for_access_token(
         db_user.id,
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@app.get(
+    "/users/histogram-types",
+    tags=["Histogram (private)"],
+    summary="Types histogram"
+)
+async def read_users_actions_types_histogram(
+    db: Session = Depends(get_db),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    """
+    A `GET` call that returns all types of registered actions, alongside the
+    count for each action. The result will be a dict, where the keys are the
+    action's title, and the value the number of times that the action was used.
+    """
+
+    types_of_actions = crud.get_users_types_histogram(db)
+
+    # register actions types query
+    crud.create_user_action(
+        db,
+        schemas.ActionCreate(**{"title": "Queried types histogram"}),
+        current_user.id,
+    )
+    return types_of_actions
+
+
+@app.get(
+    "/users/histogram-period",
+    tags=["Histogram (private)"],
+    summary="Period histogram"
+)
+async def read_users_actions_periods_histogram(
+    db: Session = Depends(get_db),
+    period_time: Literal["hour", "day", "month"] = Query(
+        "day",
+        description=(
+            "Period of time for the histogram. It should be one of:\n\n"
+            "- `hour`\n- `day`\n- `month`\n"
+        ),
+    ),
+    current_user: schemas.User = Depends(get_current_user),
+):
+    """
+    A `GET` call that returns an histogram containing information about all
+    different types of actions. Each registered action will have the
+    following information:
+
+    - **timestamps**: A list with the timestamps of the action
+    - **size**: The total number of timestamps for the action
+    - **min**: The first timestamp of the action
+    - **max**: The last timestamp of the action
+    """
+    actions_data = crud.get_users_periods_histogram(db, period_time)
+
+    # register last actions query
+    crud.create_user_action(
+        db,
+        schemas.ActionCreate(
+            **{"title": f"Queried period histogram ({period_time})"},
+        ),
+        current_user.id,
+    )
+    return actions_data
 
 
 @app.post("/users/", response_model=schemas.User, tags=["Users"])

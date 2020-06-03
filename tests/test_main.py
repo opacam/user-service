@@ -60,6 +60,18 @@ expected_credentials_exception = (
     "detail='Could not validate credentials') tblen=2>"
 )
 
+expected_types_histogram_data = {
+    "Account created": 1,
+    "Changed user password": 2,
+    "Logged into account": 15,
+    "Queried actions in ascending sorting (limited to 2)": 1,
+    "Queried actions in ascending sorting (unlimited)": 1,
+    "Queried actions in descending sorting (limited to 100)": 1,
+    "Queried actions in descending sorting (limited to 2)": 1,
+    "Queried actions in descending sorting (unlimited)": 1,
+    "Queried last actions": 1,
+}
+
 
 @pytest.fixture
 def mock_get_db_yield():
@@ -395,5 +407,56 @@ def test_change_user_password(client, new_password, credentials):
     response = client.put(
         f"/users/1/password?new_password={new_password}",
         headers=session_headers_with_token,
+    )
+    assert response.status_code == 200
+
+
+def test_read_users_actions_types_histogram(client):
+    response = client.get(
+        "/users/histogram-types", headers=get_superuser_token_headers(client)
+    )
+    assert response.status_code == 200
+    assert response.json() == expected_types_histogram_data
+
+
+def test_read_users_actions_periods_histogram_basic(client):
+    response = client.get(
+        "/users/histogram-period", headers=get_superuser_token_headers(client)
+    )
+
+    # prepare expected data which should contain almost the same actions than
+    # `expected_types_histogram_data`, with a few differences. For starters
+    # we will receive one more entry due to test
+    # `test_read_users_actions_types_histogram`
+    expected_actions = set(expected_types_histogram_data.keys()) | {
+        "Queried types histogram",
+    }
+    # since we mock datetime for the user creation, and we set default filter
+    # to one day, we will not receive the action `Account created`
+    expected_actions.remove("Account created")
+
+    assert response.status_code == 200
+    assert set(response.json().keys()) == expected_actions
+
+    # now check the result, for each action we expect 4 keys
+    data_keys = {"max", "min", "size", "timestamps"}
+    for action, data in response.json().items():
+        assert (action in expected_actions) is True
+        assert set(data.keys()) == data_keys
+        for k, v in data.items():
+            if k in {"max", "min"}:
+                expected_type = str
+            elif k == "size":
+                expected_type = int
+            else:  # timestamps
+                expected_type = list
+            assert isinstance(v, expected_type) is True
+
+
+@pytest.mark.parametrize("period_time", ("hour", "day", "month"))
+def test_read_users_actions_periods_histogram_with_params(client, period_time):
+    response = client.get(
+        f"/users/histogram-period?period_time={period_time}",
+        headers=get_superuser_token_headers(client)
     )
     assert response.status_code == 200
