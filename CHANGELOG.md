@@ -6,4 +6,7 @@
 
 **General:**
 
-- Implement a `RESTful API` to manage users accounts
+- Deployed a demo app at [heroku](https://ms-user-service.herokuapp.com/)
+- Added Dockerfile
+- Implement a `RESTful` API to manage users accounts
+- 100% tested with pytest
