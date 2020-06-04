@@ -8,6 +8,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt import PyJWTError
 from sqlalchemy.orm import Session
 from starlette import status
+from starlette.staticfiles import StaticFiles
+from starlette.responses import FileResponse
 # to support Python versions lower than 3.8, we import
 # `Literal` from typing_extensions instead from the builtin module
 #   See also: https://docs.python.org/3/library/typing.html#typing.Literal
@@ -35,6 +37,7 @@ app = FastAPI(
     openapi_url=api_settings.openapi_route,
     debug=api_settings.debug,
 )
+app.mount("/public", StaticFiles(directory="public"), name="public")
 
 WRONG_QUERY_ARGUMENTS_MSG = (
     "The Query parameter supplied for `{query_arg}` is invalid."
@@ -84,10 +87,13 @@ async def get_current_user(
     return db_user
 
 
-@app.get("/", tags=["Root"])
+@app.get("/", include_in_schema=False)
 async def index():
-    """A `GET` call to the root of the server which says hello."""
-    return {"msg": "Welcome to user-service"}
+    """
+    A `GET` call to the root of the server which supplies a link to the API
+    documentation.
+    """
+    return FileResponse('public/index.html')
 
 
 @app.post(

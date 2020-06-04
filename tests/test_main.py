@@ -131,7 +131,6 @@ def test_get_db(mock_get_db_yield):
 def test_read_main(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert response.json() == {"msg": "Welcome to user-service"}
 
 
 @pytest.mark.parametrize(
