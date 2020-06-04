@@ -1,12 +1,36 @@
 # user-service
 
+[![CI](https://github.com/opacam/user-service/workflows/CI/badge.svg?branch=develop)](https://github.com/opacam/user-service/actions/)
+[![codecov](https://codecov.io/gh/opacam/user-service/branch/develop/graph/badge.svg?token=Mh57rCB7hI)](https://codecov.io/gh/opacam/user-service)
 [![Python versions](https://img.shields.io/badge/Python-3.6+-brightgreen.svg?style=flat)](https://www.python.org/downloads/)
 [![GitHub release](https://img.shields.io/github/release/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/releases/)
 [![GitHub tag](https://img.shields.io/github/tag/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/tags/)
-[![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/master/LICENSE.md)
+[![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/develop/LICENSE.md)
 
 
-A RESTful API to deal with user authentication and management.
+A **RESTful** API to manage users accounts which registers all user
+calls to the API. This API has been wrote thinking in microservices, so
+it should be extended to store user preferences defined by the frontend
+app.
+
+It implements several endpoints, most of them only available for
+authenticated users. It basically allows you to create an account via an
+username and a password and from that point on, it will register all the
+user queries to the API. All this `user actions` can be consulted by the
+owner of the account and also we provide endpoints to retrieve histograms
+where we collect all users data.
+
+**Road map:**
+
+- extend/enhance the documentation
+- extend the API to support store user preferences (tied to the target
+  frontend app, but we could store some user preferences regarding the
+  user API queries...like default period for histogram or the preferred
+  sorting order for the user API calls)
+- add support to `PostgreSQL` database (our default is sqlite3)
+
+
+*This project has been made with Python 3, FastAPI and love*
 
 ## Getting Started
 
@@ -64,7 +88,7 @@ poetry install
 To run our project tests you can use `pytest` with coverage:
 
 ```
-PYTHONPATH=. pytest tests/ --cov app/
+PYTHONPATH=. pytest --cov app/
 ```
 
 
@@ -79,6 +103,46 @@ PYTHONPATH=. uvicorn app.main:app --reload
 Then you can access the app from http://127.0.0.1:8000. To access the
 documentation, head over to http://127.0.0.1:8000/docs.
 
+## Docker
+
+This project can be used via docker, the following sections describes
+the build/run/stop instructions.
+
+### Build image
+
+You can build the docker image with the command:
+
+```
+docker build -t user-service:latest ./
+```
+
+### Run image
+
+To run the image, use command:
+
+```
+docker run -d --name ms-user-service -p 80:80 user-service
+```
+
+---
+**NOTE**
+
+To run docker image in a testing machine, you may need to map ports
+differently:
+
+```
+docker run -d --name ms-user-service -p 5000:80 user-service
+```
+
+---
+
+### Stop Docker container
+
+To stop the docker container:
+
+```
+docker stop ms-user-service
+```
 
 ## Built With
 
