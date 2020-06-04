@@ -26,7 +26,6 @@ where we collect all users data (anonymously).
   user API queries...like default period for histogram or the preferred
   sorting order for the user API calls)
 - add support to `PostgreSQL` database (now we default to sqlite3)
-- containerise the app via Docker
 - deploy a demo of the project at heroku or something similar
 
 
@@ -103,6 +102,46 @@ PYTHONPATH=. uvicorn app.main:app --reload
 Then you can access the app from http://127.0.0.1:8000. To access the
 documentation, head over to http://127.0.0.1:8000/docs.
 
+## Docker
+
+This project can be used via docker, the following sections describes
+the build/run/stop instructions.
+
+### Build image
+
+You can build the docker image with the command:
+
+```
+docker build -t user-service:latest ./
+```
+
+### Run image
+
+To run the image, use command:
+
+```
+docker run -d --name ms-user-service -p 80:80 user-service
+```
+
+---
+**NOTE**
+
+To run docker image in a testing machine, you may need to map ports
+differently:
+
+```
+docker run -d --name ms-user-service -p 5000:80 user-service
+```
+
+---
+
+### Stop Docker container
+
+To stop the docker container:
+
+```
+docker stop ms-user-service
+```
 
 ## Built With
 
