@@ -2,4 +2,4 @@ from app import __version__
 
 
 def test_version():
-    assert __version__ == '2020.05.29'
+    assert __version__ == '2020.06.04'
