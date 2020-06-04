@@ -8,15 +8,17 @@
 [![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/develop/LICENSE.md)
 
 
-A RESTful API, intended to be used as microservice, which will deal with
-users account management.
+A **RESTful** API to manage users accounts which registers all user
+calls to the API. This API has been wrote thinking in microservices, so
+it should be extended to store user preferences defined by the frontend
+app.
 
 It implements several endpoints, most of them only available for
 authenticated users. It basically allows you to create an account via an
 username and a password and from that point on, it will register all the
 user queries to the API. All this `user actions` can be consulted by the
 owner of the account and also we provide endpoints to retrieve histograms
-where we collect all users data (anonymously).
+where we collect all users data.
 
 **Road map:**
 
@@ -25,8 +27,7 @@ where we collect all users data (anonymously).
   frontend app, but we could store some user preferences regarding the
   user API queries...like default period for histogram or the preferred
   sorting order for the user API calls)
-- add support to `PostgreSQL` database (now we default to sqlite3)
-- deploy a demo of the project at heroku or something similar
+- add support to `PostgreSQL` database (our default is sqlite3)
 
 
 *This project has been made with Python 3, FastAPI and love*
