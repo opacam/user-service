@@ -20,6 +20,15 @@ user queries to the API. All this `user actions` can be consulted by the
 owner of the account and also we provide endpoints to retrieve histograms
 where we collect all users data.
 
+You can test/explore the API functionality with the deployed demo
+app at [heroku](https://ms-user-service.herokuapp.com/):
+
+- [swagger-ui](https://ms-user-service.herokuapp.com/docs): you can
+  interact with the API as well as read the API docs.
+- [ReDoc](https://ms-user-service.herokuapp.com/redoc): Or if you prefer
+  ...in `ReDoc` format.
+
+
 **Road map:**
 
 - extend/enhance the documentation
@@ -27,7 +36,7 @@ where we collect all users data.
   frontend app, but we could store some user preferences regarding the
   user API queries...like default period for histogram or the preferred
   sorting order for the user API calls)
-- add support to `PostgreSQL` database (our default is sqlite3)
+- add support for `PostgreSQL` database (our default is sqlite3)
 
 
 *This project has been made with Python 3, FastAPI and love*
