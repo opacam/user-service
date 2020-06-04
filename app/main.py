@@ -33,7 +33,11 @@ api_settings = get_api_settings()
 
 app = FastAPI(
     title="user-service",
-    description="A simple user api with authentication",
+    description=(
+        "A **RESTful** API to manage user accounts which registers all user "
+        "calls to the API. It also provide endpoints to generate histograms "
+        "of the actions performed by all the users."
+    ),
     openapi_url=api_settings.openapi_route,
     debug=api_settings.debug,
 )
