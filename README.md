@@ -5,7 +5,7 @@
 [![Python versions](https://img.shields.io/badge/Python-3.6+-brightgreen.svg?style=flat)](https://www.python.org/downloads/)
 [![GitHub release](https://img.shields.io/github/release/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/releases/)
 [![GitHub tag](https://img.shields.io/github/tag/opacam/user-service.svg)](https://gitHub.com/opacam/user-service/tags/)
-[![GitHub license](https://img.shields.io/github/license/opacam/user-service.svg)](https://github.com/opacam/user-service/blob/develop/LICENSE.md)
+[![GitHub license](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/opacam/user-service/blob/develop/LICENSE.md)
 
 
 A **RESTful** API to manage users accounts which registers all user
