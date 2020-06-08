@@ -4,6 +4,7 @@ import jwt
 import pytest
 from fastapi import HTTPException
 from sqlalchemy import orm
+from starlette import status
 
 from app import main
 from app.api import utils
@@ -130,7 +131,7 @@ def test_get_db(mock_get_db_yield):
 
 def test_read_main(client):
     response = client.get("/")
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.parametrize(
@@ -139,7 +140,7 @@ def test_read_main(client):
 )
 def test_create_user(client, datetime_now, user_data, expected_data):
     response = client.post("/users/", json=user_data)
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_data
 
 
@@ -147,7 +148,7 @@ def test_create_user_when_already_created(client):
     # test exception when user already registered
     expected_response = {"detail": "username already registered"}
     response = client.post("/users/", json=post_data_user)
-    assert response.status_code == 400
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == expected_response
 
 
@@ -157,7 +158,7 @@ def test_authenticate(client, datetime_now):
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         data=post_data_user,
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         "access_token": expected_token.decode("utf-8"),
         "token_type": "bearer",
@@ -166,7 +167,7 @@ def test_authenticate(client, datetime_now):
 
 def test_read_user_not_authenticated(client):
     response = client.get("/users/1", headers={"X-Token": "coneofsilence"})
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {"detail": "Not authenticated"}
 
 
@@ -174,7 +175,7 @@ def test_read_user(client):
     session_headers_with_token = get_superuser_token_headers(client)
     response = client.get("/users/1", headers=session_headers_with_token)
     response_json = response.json()
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert "actions" in response_json
 
     # remove actions and test that we below two actions (the ones we mocked
@@ -211,7 +212,7 @@ def test_read_user(client):
         ],
     }
     response = client.get("/users/2", headers=session_headers_with_token)
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == expected_msg
 
 
@@ -223,7 +224,7 @@ def test_login_with_wrong_credentials(client):
             "password": post_data_user["password"] + "x",
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {"detail": "Incorrect username or password"}
 
 
@@ -235,7 +236,7 @@ def test_authenticate_user_non_existent(client):
             "password": post_data_user["password"],
         },
     )
-    assert response.status_code == 401
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
     assert response.json() == {"detail": "Incorrect username or password"}
 
 
@@ -275,7 +276,10 @@ async def test_get_current_user_db_error_no_user(
     assert str(excinfo) == expected_credentials_exception
 
 
-@pytest.mark.parametrize("user_id,expected_status_code", [(1, 200), (2, 401)])
+@pytest.mark.parametrize(
+    "user_id,expected_status_code",
+    [(1, status.HTTP_200_OK), (2, status.HTTP_401_UNAUTHORIZED)],
+)
 def test_read_actions_basic(client, user_id, expected_status_code):
     # test query with default parameters
     session_headers_with_token = get_superuser_token_headers(client)
@@ -315,7 +319,7 @@ def test_read_actions_with_params(client, limit, sort):
         f"/users/1/actions?limit={limit}&sort={sort}",
         headers=session_headers_with_token,
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     if limit == 0:
         assert len(response.json()) > 2
     else:
@@ -336,11 +340,14 @@ def test_read_actions_wrong_sort_param(client):
             query_arg="order_direction"
         ) + "It should be one of: `asc` or `desc`."
     }
-    assert response.status_code == 400
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json() == expected_msg
 
 
-@pytest.mark.parametrize("user_id,expected_status_code", [(1, 200), (2, 401)])
+@pytest.mark.parametrize(
+    "user_id,expected_status_code",
+    [(1, status.HTTP_200_OK), (2, status.HTTP_401_UNAUTHORIZED)],
+)
 def test_read_last_actions(client, user_id, expected_status_code):
     session_headers_with_token = get_superuser_token_headers(client)
     response = client.get(
@@ -361,7 +368,10 @@ def test_read_last_actions(client, user_id, expected_status_code):
         assert response.json() == expected_msg
 
 
-@pytest.mark.parametrize("user_id,expected_status_code", [(1, 401), (2, 200)])
+@pytest.mark.parametrize(
+    "user_id,expected_status_code",
+    [(1, status.HTTP_401_UNAUTHORIZED), (2, status.HTTP_200_OK)],
+)
 def test_delete_user(client, user_id, expected_status_code):
     user_authentication_data = {1: post_data_user, 2: to_delete_user}
 
@@ -407,14 +417,14 @@ def test_change_user_password(client, new_password, credentials):
         f"/users/1/password?new_password={new_password}",
         headers=session_headers_with_token,
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
 
 
 def test_read_users_actions_types_histogram(client):
     response = client.get(
         "/users/histogram-types", headers=get_superuser_token_headers(client)
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json() == expected_types_histogram_data
 
 
@@ -434,7 +444,7 @@ def test_read_users_actions_periods_histogram_basic(client):
     # to one day, we will not receive the action `Account created`
     expected_actions.remove("Account created")
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert set(response.json().keys()) == expected_actions
 
     # now check the result, for each action we expect 4 keys
@@ -458,4 +468,4 @@ def test_read_users_actions_periods_histogram_with_params(client, period_time):
         f"/users/histogram-period?period_time={period_time}",
         headers=get_superuser_token_headers(client)
     )
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
