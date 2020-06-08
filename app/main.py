@@ -210,7 +210,8 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     db_user = crud.get_user_by_username(db, username=user.username)
     if db_user:
         raise HTTPException(
-            status_code=400, detail="username already registered"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="username already registered",
         )
     log.debug(f"Creating user: {user}")
     return crud.create_user(db=db, user=user)
