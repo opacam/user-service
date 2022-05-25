@@ -28,7 +28,7 @@ maintainers = ["opacam <canellestudi@gmail.com>"]
 python = "^3.6"
 fastapi = {extras = ["all"], version = "^0.55.1"}
 sqlalchemy = "^1.3.17"
-pyjwt = "^1.7.1"
+pyjwt = "^2.4.0"
 passlib = {extras = ["bcrypt"], version = "^1.7.2"}
 typing-extensions = "^3.7.4"
 gunicorn = "^20.0.4"
